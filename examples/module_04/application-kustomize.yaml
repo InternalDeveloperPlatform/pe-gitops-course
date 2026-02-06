@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: module-04-kustomize
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: pe-gitops-prod
+  source:
+    repoURL: git@github.com:InternalDeveloperPlatform/pe-gitops-course.git
+    targetRevision: HEAD
+    path: examples/module_04/kustomize/podinfo/overlays/argocd
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=false
+      - SkipDryRunOnMissingResource=true

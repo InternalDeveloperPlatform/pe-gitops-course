@@ -1,0 +1,88 @@
+ externalSecret:
+  enabled: false
+
+ vcluster:
+  sync:
+    toHost:
+      ingresses:
+        enabled: true
+    fromHost:
+      nodes:
+        enabled: false
+
+  controlPlane:
+    distro:
+      k3s:
+        enabled: true
+        image:
+          repository: rancher/k3s
+          tag: v1.33.3-k3s1
+    proxy:
+      extraSANs:
+        - vcluster.example.com
+    ingress:
+      enabled: false
+      host: "vcluster.example.com"
+      pathType: ImplementationSpecific
+      annotations:
+        nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+        nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+      spec:
+        ingressClassName: nginx
+    statefulSet:
+      persistence:
+        volumeClaim:
+          enabled: true
+          size: 5Gi
+    service:
+      enabled: true
+    ingress:
+      enabled: false
+    coredns:
+      enabled: true
+      deployment:
+        replicas: 1
+      service:
+        spec:
+          type: ClusterIP
+
+  policies:
+    resourceQuota:
+      enabled: false
+      quota:
+        requests.cpu: 20
+        requests.memory: 40Gi
+        requests.storage: 200Gi
+        requests.ephemeral-storage: 50Gi
+        limits.cpu: 40
+        limits.memory: 80Gi
+        limits.ephemeral-storage: 300Gi
+        services.nodeports: 1
+        services.loadbalancers: 1
+        count/endpoints: 40
+        count/pods: 40
+        count/services: 40
+        count/secrets: 100
+        count/configmaps: 100
+        count/persistentvolumeclaims: 20
+
+    limitRange:
+      enabled: auto
+      labels: {}
+      annotations: {}
+      default:
+        ephemeral-storage: 16Gi
+        memory: 2Gi
+        cpu: "4"
+      defaultRequest:
+        ephemeral-storage: 8Gi
+        memory: 1Gi
+        cpu: "2"
+
+  rbac:
+    role:
+      enabled: true
+    clusterRole:
+      enabled: auto

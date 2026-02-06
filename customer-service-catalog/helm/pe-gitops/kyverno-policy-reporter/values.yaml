@@ -1,0 +1,54 @@
+namespace:
+  labels:
+    project-name: "pe-gitops"
+    stage: "prod"
+    shared-gateway: "enabled"
+policy-reporter:
+  replicaCount: 1
+  metrics:
+    enabled: true
+  monitoring:
+    serviceMonitor:
+      labels:
+        monitoring.instance: "pe-gitops-prod"
+  ui:
+    enabled: true
+
+gateway:
+  enabled: true
+  name: shared-gw
+  namespace: gateway-system
+  host: pe-gitops-0.stackit.run
+
+httpRoutes:
+  # 1. Policy Reporter Redirect (Port 80 -> 443)
+  - name: policy-reporter-redirect
+    sectionName: http
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /kyverno
+        filters:
+          - type: RequestRedirect
+            requestRedirect:
+              scheme: https
+              statusCode: 301
+
+  # 2. Policy Reporter UI (mit URL Rewrite)
+  - name: policy-reporter-ui
+    sectionName: https
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /kyverno
+        filters:
+          - type: URLRewrite
+            urlRewrite:
+              path:
+                type: ReplacePrefixMatch
+                replacePrefixMatch: /
+        backendRefs:
+          - name: policy-reporter-ui
+            port: 8080

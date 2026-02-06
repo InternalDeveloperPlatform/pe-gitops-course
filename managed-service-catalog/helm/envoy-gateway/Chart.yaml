@@ -1,0 +1,12 @@
+apiVersion: v2
+name: envoy-gateway
+description: Umbrella Chart for envoy-gateway
+type: application
+version: 0.0.2
+dependencies:
+  - name: template-library
+    repository: file://../template-library
+    version: 0.0.4
+  - name: gateway-helm
+    repository: oci://docker.io/envoyproxy
+    version: v1.6.1

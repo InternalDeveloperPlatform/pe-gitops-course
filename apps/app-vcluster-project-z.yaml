@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  name: vcluster-project-z
+  namespace: argocd
+spec:
+  destination:
+    namespace: vcluster-project-z
+    server: https://kubernetes.default.svc
+  project: pe-gitops-prod
+  sources:
+    - helm:
+        ignoreMissingValueFiles: true
+        releaseName: vcluster-project-z
+        valueFiles:
+          - values.yaml
+        values: |
+          namespaceName: vcluster-project-z
+          namespace:
+            labels:
+              shared-gateway: "enabled"
+          gateway:
+            enabled: true
+            name: shared-gw
+            namespace: gateway-system
+          tlsRoutes:
+            - name: vcluster-project-z-tls-route
+              sectionName: tls-passthrough
+              hostnames:
+                - vcluster-project-z.pe-gitops-0.stackit.run
+              backendRefs:
+                - name: vcluster-project-z
+                  port: 443
+          vcluster:
+            controlPlane:
+              proxy:
+                extraSANs:
+                  - vcluster-project-z.pe-gitops-0.stackit.run
+      path: ./managed-service-catalog/helm/vcluster
+      repoURL: git@github.com:InternalDeveloperPlatform/pe-gitops-course.git
+      targetRevision: main
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+      - PruneLast=true
+      - FailOnSharedResource=true
+      - RespectIgnoreDifferences=true
+      - ApplyOutOfSyncOnly=true
+      - ServerSideApply=true

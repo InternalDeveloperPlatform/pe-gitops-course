@@ -1,0 +1,255 @@
+bootstrapValues:
+  projects:
+    - name: "pe-gitops-prod"
+      namespace: argocd
+      description: "pe-gitops-prod project"
+      sourceRepos:
+        - "registry.your.domain"
+        - " ghcr.io/stefanprodan/charts"
+      orphanedResources:
+        warn: false
+        ignore:
+          - kind: Secret
+            name: cert-manager-webhook-ca
+    - description: "developer-repo-project-x project"
+      name: developer-repo-project-x
+      orphanedResources:
+        ignore:
+          - kind: Secret
+            name: cert-manager-webhook-ca
+        warn: false
+      sourceRepos:
+        - git@github.com:InternalDeveloperPlatform/pe-gitops-course.git
+  applications:
+    # - destination:
+    #     serverName: vcluster-project-x
+    #   info:
+    #     - name: type
+    #       value: developer-repo-project-x
+    #   name: developer-repo-project-x
+    #   namespace: argocd
+    #   projectName: developer-repo-project-x
+    #   repoPath: examples/module_05/developer-repo-project-x/podinfo
+    #   repoUrl: git@github.com:InternalDeveloperPlatform/pe-gitops-course.git
+    - destination:
+        serverName: pe-gitops
+      info:
+        - name: type
+          value: app-of-apps
+      name: app-of-apps
+      namespace: argocd
+      projectName: pe-gitops-prod
+      repoPath: apps
+      repoUrl: git@github.com:InternalDeveloperPlatform/pe-gitops-course.git
+  # repositories:
+  #   - name: developer-repo-project-x
+  #     projectScope: developer-repo-project-x
+  #     remoteRef:
+  #       remoteKey: repos
+  #       remoteKeyProperty: vcluster-project-x-developer-repo
+  #     repoType: git
+  #     secretStoreRef:
+  #       kind: ClusterSecretStore
+  #       name: pe-gitops-prod
+  #     url: git@github.com:InternalDeveloperPlatform/pe-gitops-course.git
+  #     username: la-cc
+  # cluster:
+    # - additionalLabels:
+    #     flux-operator: "enabled"
+    #   name: vcluster-project-z-new
+    #   project: pe-gitops-prod
+    #   remoteRef:
+    #     remoteKey: vcluster-project-z
+    #     remoteKeyProperty: vcluster-project-z
+    #   secretStoreRef:
+    #     kind: ClusterSecretStore
+    #     name: bitwarden-com-demo
+    # - additionalLabels:
+    #     flux-operator: "disabled"
+    #     kyverno: "enabled"
+    #     kyverno-policies: "enabled"
+    #   name: vcluster-project-x
+    #   project: pe-gitops-prod
+    #   remoteRef:
+    #     remoteKey: my_clusters
+    #     remoteKeyProperty: vcluster-project-x
+    #   secretStoreRef:
+    #     kind: ClusterSecretStore
+    #     name: pe-gitops-prod
+
+  applicationSets:
+    - projectName: "pe-gitops-prod"
+      managedServices:
+        repoURL: "git@github.com:InternalDeveloperPlatform/pe-gitops-course.git"
+        path: "managed-service-catalog/helm"
+        targetRevision: "main"
+      customerServices:
+        repoURL: "git@github.com:InternalDeveloperPlatform/pe-gitops-course.git"
+        path: "customer-service-catalog/helm"
+        targetRevision: "main"
+      apps:
+        - name: argocd
+          path: argo-cd
+        - name: argo-rollouts
+          path: argo-rollouts
+        - name: kyverno
+          path: kyverno
+        - name: kyverno-policies
+          path: kyverno-policies
+        - name: external-secrets
+          path: external-secrets
+        - name: cert-manager
+          path: cert-manager
+        - name: external-dns
+          path: external-dns
+        - name: kube-prometheus-stack
+          path: kube-prometheus-stack
+        - name: loki
+          path: loki
+        - name: kyverno-policy-reporter
+          path: kyverno-policy-reporter
+        - name: homer-dashboard
+          path: homer-dashboard
+        - name: envoy-gateway
+          path: envoy-gateway
+        - name: projectsveltos
+          path: projectsveltos
+        - name: flux-operator
+          path: flux-operator
+
+
+namespace:
+  labels:
+    project-name: "pe-gitops"
+    stage: "prod"
+    shared-gateway: "enabled"
+inClusterName: pe-gitops
+inClusterSecretLabels:
+##Controlplane labels
+  argocd: "enabled"
+  argo-rollouts: "enabled"
+  cert-manager: "enabled"
+  external-dns: "enabled"
+  external-secrets: "enabled"
+  kube-prometheus-stack: "enabled"
+  kyverno: "enabled"
+  kyverno-policies: "enabled"
+  kyverno-policy-reporter: "enabled"
+  loki: "enabled"
+  homer-dashboard: "enabled"
+  envoy-gateway: "enabled"
+  flux-operator: "disabled"
+  projectsveltos: "enabled"
+
+externalSecrets:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: "pe-gitops-prod"
+  # secrets:
+  #   - target: oauth2-credentials
+  #     dataFrom:
+  #       - remoteKey: argo_oauth2_credentials
+
+
+argo-cd:
+  configs:
+    cm:
+      url: https://pe-gitops-0.stackit.run/argocd
+      admin.enabled: true
+      exec.enabled: "true"
+      users.anonymous.enabled: "false"
+      #GitHub OAuth2 connector
+      dex.config: |
+        connectors:
+          - type: github
+            id: github
+            name: GitHub
+            config:
+              clientID: $oauth2-credentials:client-id
+              clientSecret: $oauth2-credentials:client-secret
+              orgs:
+                - name: la-demos
+    rbac:
+      policy.default: role:readonly
+      policy.csv: |
+        g, la-demos:g-gitops, role:admin
+      # dex.config: |
+      #   connectors:
+      #   - type: gitlab
+      #     id: gitlab
+      #     name: GitLab
+      #     config:
+      #       baseURL: https://gitlab.com
+      #       clientID: $oauth2-credentials:client-id
+      #       clientSecret: $oauth2-credentials:client-secret
+      #       redirectURI: https://pe-gitops-0.stackit.run/argocd/api/dex/callback
+    # rbac:
+    #   policy.default: role:readonly #role:deny if you want to restrict access only to defined roles
+    #   policy.csv: |
+    #     # Github group mapping
+    #     g, la-demos:g-gitops, role:admin
+    #     # Gitlab group mapping
+    #     g, argocd-admins1, role:admin
+    #     g, app-team, role:app-team
+
+    #     # custom roles
+    #     p, role:app-team, applications, get, app-team/*, allow
+    #     p, role:app-team, applications, sync, app-team/*, allow
+    params:
+      server.rootpath: /argocd
+      server.basehref: /argocd
+      server.insecure: true
+      server.enable.proxy.protocol: false
+  global:
+    domain: pe-gitops-0.stackit.run
+    revisionHistoryLimit: 5
+  controller:
+    metrics:
+      enabled: true
+      rules:
+        enabled: false
+      serviceMonitor:
+        enabled: true
+        additionalLabels:
+          monitoring.instance: "pe-gitops-prod"
+
+gateway:
+  enabled: true
+  name: shared-gw
+  namespace: gateway-system
+  host: pe-gitops-0.stackit.run
+
+httpRoutes:
+  - name: argocd-ui-redirect
+    sectionName: http
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /argocd
+        filters:
+          - type: RequestRedirect
+            requestRedirect:
+              scheme: https
+              statusCode: 301
+  - name: argocd-ui
+    sectionName: https
+    rules:
+      - matches:
+          - path:
+              type: Exact
+              value: /argocd
+        filters:
+          - type: RequestRedirect
+            requestRedirect:
+              statusCode: 301
+              path:
+                type: ReplaceFullPath
+                replaceFullPath: /argocd/
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /argocd/
+        backendRefs:
+          - name: argocd-server
+            port: 80

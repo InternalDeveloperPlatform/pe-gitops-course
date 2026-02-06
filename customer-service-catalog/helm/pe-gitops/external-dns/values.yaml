@@ -1,0 +1,59 @@
+externalSecrets: {}
+# externalSecrets:
+#   secretStoreRef:
+#     kind: ClusterSecretStore
+#     name: "pe-gitops-prod"
+#   secrets:
+#     - target: external-dns-webhook
+#       data:
+#         - remoteKey: "dns_zone_admin"
+#           remoteKeyProperty: "project_id"
+#           secretKey: "PROJECT_ID"
+#         - remoteKeyProperty: "sa_key_json"
+#           remoteKey: "dns_zone_admin"
+#           secretKey: "SA_KEY_JSON"
+
+namespace:
+  labels:
+    project-name: "pe-gitops"
+    stage: "prod"
+external-dns:
+  txtOwnerId: pe-gitops-prod
+  domainFilters:
+    - pe-gitops-0.stackit.run
+  extraArgs:
+    - --source=gateway-httproute
+    - --source=gateway-grpcroute
+    - --source=gateway-tcproute
+    - --source=gateway-tlsroute
+    - --source=gateway-udproute
+  global:
+    security:
+      allowInsecureImages: true
+  provider:
+    webhook:
+      image:
+        repository: ghcr.io/stackitcloud/external-dns-stackit-webhook
+        tag: v0.3.2
+  serviceMonitor:
+    enabled: true
+    additionalLabels:
+      monitoring.instance: "pe-gitops-prod"
+  rbac:
+    create: true
+    additionalPermissions:
+      - apiGroups: ["gateway.networking.k8s.io"]
+        resources:
+          - gateways
+          - httproutes
+          - tlsroutes
+          - tcproutes
+          - udproutes
+          - grpcroutes
+          - gatewayclasses
+          - referencegrants
+        verbs: ["get", "watch", "list"]
+      - apiGroups: [""]
+        resources:
+          - "namespaces"
+        verbs: ["get", "watch", "list"]

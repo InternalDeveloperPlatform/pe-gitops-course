@@ -1,0 +1,20 @@
+{{- if and .Values.gateway (default false .Values.gateway.enabled) -}}
+{{- range .Values.tlsRoutes }}
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  parentRefs:
+    - name: {{ $.Values.gateway.name }}
+      namespace: {{ $.Values.gateway.namespace }}
+      sectionName: {{ .sectionName | default "tls-passthrough" }}
+  hostnames:
+    {{- toYaml .hostnames | nindent 4 }}
+  rules:
+    - backendRefs:
+        {{- toYaml .backendRefs | nindent 8 }}
+{{- end }}
+{{- end }}

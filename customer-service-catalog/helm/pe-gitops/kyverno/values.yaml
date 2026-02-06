@@ -1,0 +1,30 @@
+crds:
+  install: true
+
+namespace:
+  labels:
+    project-name: "pe-gitops"
+    stage: "prod"
+    shared-gateway: "enabled"
+
+kyverno:
+  admissionController:
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        monitoring.instance: "pe-gitops-prod"
+  backgroundController:
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        monitoring.instance: "pe-gitops-prod"
+  cleanupController:
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        monitoring.instance: "pe-gitops-prod"
+  reportsController:
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        monitoring.instance: "pe-gitops-prod"

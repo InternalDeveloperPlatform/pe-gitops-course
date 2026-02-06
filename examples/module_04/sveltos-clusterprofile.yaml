@@ -1,0 +1,26 @@
+apiVersion: config.projectsveltos.io/v1beta1
+kind: ClusterProfile
+metadata:
+  name: deploy-podinfo
+spec:
+  clusterSelector:
+    matchLabels:
+      env: prod
+  syncMode: Continuous
+
+  helmCharts:
+  - repositoryURL:    oci://ghcr.io/stefanprodan/charts
+    repositoryName:   podinfo
+    chartName:        podinfo
+    chartVersion:     6.9.4
+    releaseName:      podinfo
+    releaseNamespace: webapp-your-first-application-with-sveltos
+    helmChartAction:  Install
+    values: |
+      replicaCount: 3
+      ui:
+        color: "#34577c"
+      resources:
+        requests:
+          cpu: 100m
+          memory: 64Mi

@@ -1,0 +1,14 @@
+gatewaySystem:
+  namespace: gateway-system
+  namespaceLabels:
+    shared-gateway: "enabled"
+
+  gatewayClass:
+    name: envoy-gateway
+    controllerName: gateway.envoyproxy.io/gatewayclass-controller
+
+  gateway:
+    name: shared-gw
+    clusterIssuer: letsencrypt-prod-gateway
+    wildcardSecretName: wildcard-pe-gitops-tls
+    mainHostname: "pe-gitops-0.stackit.run"

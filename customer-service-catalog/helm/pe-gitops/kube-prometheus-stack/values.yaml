@@ -1,0 +1,291 @@
+kube-prometheus-stack:
+  global:
+    imageRegistry: ""
+  prometheusOperator:
+    serviceMonitor:
+      additionalLabels:
+        monitoring.instance: pe-gitops-prod
+    prometheus:
+      monitor:
+        additionalLabels:
+          monitoring.instance: pe-gitops-prod
+  prometheus:
+    serviceMonitor:
+      additionalLabels:
+        monitoring.instance: pe-gitops-prod
+    ingress:
+      ingressClassName: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-staging
+      enabled: false
+      paths:
+        - /prometheus
+      pathType: ImplementationSpecific
+      hosts:
+        - pe-gitops-0.stackit.run
+      tls:
+        - secretName: tls-prometheus
+          hosts:
+            - pe-gitops-0.stackit.run
+
+
+    prometheusSpec:
+      retention: 10d
+      serviceMonitorSelector:
+        matchLabels:
+          monitoring.instance: pe-gitops-prod
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 10Gi
+      externalUrl: https://pe-gitops-0.stackit.run/prometheus
+      routePrefix: /prometheus
+    thanosServiceMonitor:
+      serviceMonitor:
+        additionalLabels:
+          monitoring.instance: pe-gitops-prod
+  alertmanager:
+    serviceMonitor:
+      additionalLabels:
+        monitoring.instance: pe-gitops-prod
+    ingress:
+      ingressClassName: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-staging
+      enabled: false
+      paths:
+        - /alertmanager
+      pathType: ImplementationSpecific
+      hosts:
+        - pe-gitops-0.stackit.run
+      tls:
+        - secretName: tls-alertmanager
+          hosts:
+            - pe-gitops-0.stackit.run
+
+
+    alertmanagerSpec:
+      externalUrl: https://pe-gitops-0.stackit.run/alertmanager
+      routePrefix: /alertmanager
+
+  kube-state-metrics:
+    prometheus:
+      monitor:
+        additionalLabels:
+          monitoring.instance: pe-gitops-prod
+  kubeApiServer:
+    serviceMonitor:
+      additionalLabels:
+        monitoring.instance: pe-gitops-prod
+  kubelet:
+    serviceMonitor:
+      additionalLabels:
+        monitoring.instance: pe-gitops-prod
+  kubeControllerManager:
+    serviceMonitor:
+      additionalLabels:
+        monitoring.instance: pe-gitops-prod
+  coreDns:
+    serviceMonitor:
+      additionalLabels:
+        monitoring.instance: pe-gitops-prod
+  kubeDns:
+    serviceMonitor:
+      additionalLabels:
+        monitoring.instance: pe-gitops-prod
+  kubeScheduler:
+    serviceMonitor:
+      additionalLabels:
+        monitoring.instance: pe-gitops-prod
+  thanosRuler:
+    serviceMonitor:
+      additionalLabels:
+        monitoring.instance: pe-gitops-prod
+  grafana:
+    admin:
+      existingSecret: grafana-admin-credentials
+      userKey: admin-user
+      passwordKey: admin-password
+    serviceMonitor:
+      labels:
+        monitoring.instance: pe-gitops-prod
+    ingress:
+      ingressClassName: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-staging
+      enabled: false
+      path: /grafana
+      pathType: ImplementationSpecific
+      hosts:
+        - pe-gitops-0.stackit.run
+      tls:
+        - secretName: tls-grafana
+          hosts:
+            - pe-gitops-0.stackit.run
+    # envFromSecrets:
+    #   - name: oauth2-credentials
+    grafana.ini:
+      server:
+        root_url: https://pe-gitops-0.stackit.run/grafana/
+        serve_from_sub_path: true
+      auth.github:
+        name: "Github"
+        enabled: true
+        client_id: ${client-id}
+        client_secret: ${client-secret}
+        allow_sign_up: true
+        auto_login: false
+        scopes: "user:email,read:org"
+        allowed_organizations: "[\"la-demos\"]"
+        role_attribute_path: contains(groups[*], '@la-demos/g-gitops') && 'Admin' || 'Viewer'
+    additionalDataSources:
+      - access: proxy
+        isDefault: false
+        name: loki
+        type: loki
+        url: http://loki-headless.loki.svc.cluster.local:3100
+        version: 1
+prometheus-blackbox-exporter:
+  image:
+    pullSecrets:
+      - image-pull-secret
+  global:
+    imageRegistry: quay.io
+
+# externalSecrets:
+#   secretStoreRef:
+#     kind: ClusterSecretStore
+#     name: "pe-gitops-prod"
+#   secrets:
+#     - target: grafana-admin-credentials
+#       dataFrom:
+#         - remoteKey: grafana_credentials
+    # - target: oauth2-credentials
+    #   dataFrom:
+    #     - remoteKey: grafana_oauth2_credentials
+
+
+namespace:
+  labels:
+    project-name: "pe-gitops"
+    stage: "prod"
+    shared-gateway: "enabled"
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
+
+gateway:
+  enabled: true
+  name: shared-gw
+  namespace: gateway-system
+  host: pe-gitops-0.stackit.run
+
+httpRoutes:
+  # --- GRAFANA ---
+  - name: grafana-redirect
+    sectionName: http
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /grafana
+        filters:
+          - type: RequestRedirect
+            requestRedirect:
+              scheme: https
+              statusCode: 301
+  - name: grafana
+    sectionName: https
+    rules:
+      - matches:
+          - path:
+              type: Exact
+              value: /grafana
+        filters:
+          - type: RequestRedirect
+            requestRedirect:
+              statusCode: 301
+              path:
+                type: ReplaceFullPath
+                replaceFullPath: /grafana/
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /grafana/
+        backendRefs:
+          - name: kube-prometheus-stack-grafana
+            port: 80
+
+  # --- ALERTMANAGER ---
+  - name: alertmanager-redirect
+    sectionName: http
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /alertmanager
+        filters:
+          - type: RequestRedirect
+            requestRedirect:
+              scheme: https
+              statusCode: 301
+  - name: alertmanager
+    sectionName: https
+    rules:
+      - matches:
+          - path:
+              type: Exact
+              value: /alertmanager
+        filters:
+          - type: RequestRedirect
+            requestRedirect:
+              statusCode: 301
+              path:
+                type: ReplaceFullPath
+                replaceFullPath: /alertmanager/
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /alertmanager/
+        backendRefs:
+          - name: kube-prometheus-stack-alertmanager
+            port: 9093
+
+  # --- PROMETHEUS ---
+  - name: prometheus-redirect
+    sectionName: http
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /prometheus
+        filters:
+          - type: RequestRedirect
+            requestRedirect:
+              scheme: https
+              statusCode: 301
+  - name: prometheus
+    sectionName: https
+    rules:
+      - matches:
+          - path:
+              type: Exact
+              value: /prometheus
+        filters:
+          - type: RequestRedirect
+            requestRedirect:
+              statusCode: 301
+              path:
+                type: ReplaceFullPath
+                replaceFullPath: /prometheus/
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /prometheus/
+        backendRefs:
+          - name: kube-prometheus-stack-prometheus
+            port: 9090

@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: module-04-helm
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: pe-gitops-prod
+  source:
+    repoURL: git@github.com:InternalDeveloperPlatform/pe-gitops-course.git
+    targetRevision: HEAD
+    path: examples/module_04/helm/podinfo
+    helm:
+      parameters:
+        - name: ui.color
+          value: "#34577c"
+        - name: replicaCount
+          value: "2"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: module-04-helm-podinfo
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+      - ServerSideApply=true

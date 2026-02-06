@@ -1,0 +1,28 @@
+clusterIssuer:
+  name: letsencrypt-prod-gateway
+  email: artem@lajko.dev
+  server: https://acme-v02.api.letsencrypt.org/directory
+  solvers:
+    - http01:
+        gatewayHTTPRoute:
+          parentRefs:
+            - name: shared-gw
+              namespace: gateway-system
+              sectionName: http
+
+
+cert-manager:
+  prometheus:
+    servicemonitor:
+      enabled: true
+      labels:
+        monitoring.instance: pe-gitops-prod
+  config:
+    enableGatewayAPI: true
+    kind: ControllerConfiguration
+    apiVersion: controller.config.cert-manager.io/v1alpha1
+
+namespace:
+  labels:
+    project-name: "pe-gitops"
+    stage: "prod"

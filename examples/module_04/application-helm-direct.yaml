@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: module-04-helm-oci
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: pe-gitops-prod
+  source:
+    repoURL: ghcr.io/stefanprodan/charts
+    chart: podinfo
+    targetRevision: 6.9.4
+    helm:
+      parameters:
+        - name: ui.color
+          value: "#34577c"
+        - name: replicaCount
+          value: "2"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: module-04-helm-oci
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

@@ -1,0 +1,34 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: stefanprodan
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://stefanprodan.github.io/podinfo
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: podinfo
+  namespace: flux-system
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: podinfo
+      version: "6.9.4"
+      sourceRef:
+        kind: HelmRepository
+        name: stefanprodan
+        namespace: flux-system
+  targetNamespace: webapp-your-first-application-with-fluxcd-helmrelease
+  install:
+    createNamespace: true
+  uninstall:
+    keepHistory: false
+  values:
+    fullnameOverride: frontend
+    replicaCount: 2
+    ui:
+      color: "#34577c"

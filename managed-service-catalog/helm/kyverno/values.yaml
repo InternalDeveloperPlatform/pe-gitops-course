@@ -1,0 +1,22 @@
+namespace: {}
+kyverno:
+  admissionController:
+    serviceMonitor:
+      enabled: false
+    additionalLabels:
+      monitoring.instance: changeme
+  backgroundController:
+    serviceMonitor:
+      enabled: false
+    additionalLabels:
+      monitoring.instance: changeme
+  cleanupController:
+    serviceMonitor:
+      enabled: false
+    additionalLabels:
+      monitoring.instance: changeme
+  reportsController:
+    serviceMonitor:
+      enabled: false
+    additionalLabels:
+      monitoring.instance: changeme

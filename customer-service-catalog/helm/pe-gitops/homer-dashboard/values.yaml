@@ -1,0 +1,122 @@
+namespace:
+  labels:
+    project-name: "pe-gitops"
+    stage: "prod"
+    shared-gateway: "enabled"
+serviceMonitor:
+  enabled: true
+  additionalLabels:
+    monitoring.instance: "pe-gitops-prod"
+dashboardConfig:
+  title: "Kubara Developer Portal"
+  subtitle: "prod"
+  logo: "assets/icons/stackit-logo.png"
+
+  header: true
+  footer: '<p style="color:"#045464";"> Kubara Developer Portal</p>'
+  proxy:
+    useCredentials: false
+  connectivityCheck: true
+
+  # Optional theme customization
+  theme: default
+
+  # Optional theme customization (color overrrides)
+  # overrrides can also be done using CSS vars
+  colors:
+    light:
+      highlight-primary: "#045464"    # deep teal
+      highlight-secondary: "#f8ea19"    # bright yellow
+      highlight-hover: "#347483"    #
+      background: "#f3f3f2"    # light gray
+      card-background: "#ffffff"    # white
+      text: "#161616"    # very dark gray
+      text-header: "#ffffff"    # white
+      text-title: "#161616"    # very dark gray
+      text-subtitle: "#045464"    # deep teal
+      card-shadow: "#00000026"  # black, 15% opacity
+      link: "#045464"    # deep teal
+      link-hover: "#045464"    # deep teal
+    dark:
+      highlight-primary: "#232b34"    #
+      highlight-secondary: "#374452"    #
+      highlight-hover: "#045464"    #
+      background: "#232b34"    # very dark gray
+      card-background: "#374452"    #
+      text: "#f3f3f2"    # light gray
+      text-header: "#ffffff"    # white
+      text-title: "#ded576"    # ochre yellow
+      text-subtitle: "#ffffff"    #
+      card-shadow: "#00000066"  # black, 40% opacity
+      link: "#374452"    #
+      link-hover: "#ded576"    # ochre yellow
+
+  # Services
+  # First level array represent a group.
+  # Leave only a "items" key if not using group (group name, icon & tagstyle are optional, section separation will not be displayed).
+  services:
+    - name: "Tools"
+      items:
+        - name: "argocd"
+          logo: "/assets/tools/argocd.png"
+          url: "/argocd/"
+          subtitle: "GitOps Deployment Dashboard"
+          target: "_blank"
+        - name: "grafana"
+          logo: "/assets/tools/grafana.png"
+          url: "/grafana/"
+          subtitle: "Monitoring Dashboards"
+          target: "_blank"
+        - name: "prometheus"
+          logo: "/assets/tools/prometheus.png"
+          url: "/prometheus/"
+          subtitle: "Prometheus Dashboard"
+          target: "_blank"
+        - name: "alertmanager"
+          logo: "/assets/tools/alertmanager.png"
+          url: "/alertmanager/"
+          subtitle: "Alertmanager Dashboard"
+          target: "_blank"
+        - name: "kyverno"
+          logo: "/assets/tools/kyverno.png"
+          url: "/kyverno/"
+          subtitle: "Policy Reporter Dashboard"
+          target: "_blank"
+    - name: "DevOps Links"
+      items:
+        - name: "STACKIT Secretsmanager"
+          logo: "/assets/tools/secretsmanager.png"
+          url: "https://portal.stackit.cloud/projects/replace-me-with-your-url"
+        - name: "Jira"
+          logo: "/assets/tools/jira.png"
+          url: "https://jira.schwarz/"
+
+gateway:
+  enabled: true
+  name: shared-gw
+  namespace: gateway-system
+  host: pe-gitops-0.stackit.run
+
+httpRoutes:
+  - name: homer-redirect
+    sectionName: http
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /
+        filters:
+          - type: RequestRedirect
+            requestRedirect:
+              scheme: https
+              statusCode: 301
+  - name: homer-backend
+    sectionName: https
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /
+        backendRefs:
+          - name: homer-dashboard
+            port: 8080

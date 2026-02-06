@@ -1,0 +1,79 @@
+#########################################
+### Kubara gitignore ###
+# Terraform
+
+# Local .terraform directories
+**/.terraform/
+# State files
+*.tfstate
+*.tfstate.*
+# Env helper scripts (optional, but often local only)
+**/set-env*.sh
+**/set-env*.ps1
+# Terraform lock file (only ignore if using providers globally)
+.terraform.lock.hcl
+# Crash logs
+crash.log
+crash.*.log
+# Terraform-generated files
+generated_backend.tf
+*.hprof
+runtime_settings.properties
+# Helm
+# Helm charts and lock files
+**/charts/
+**/Chart.lock
+**/*.tgz
+# Secrets
+# Generic
+**/secrets
+/secrets
+# Specific
+launchers/demo-e2e/edc-config.properties
+.env
+# Logs
+*.log
+test/
+# OS & Editor Artifacts
+# macOS
+.DS_Store
+# Visual Studio
+.vs/
+.vscode/
+# IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+*/out/
+out/
+# Archives / Packaging
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+# Go (if you use Go modules or compiled binaries)
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+# Go build output
+/go.sum
+/go.mod
+bin/
+
+kubara
+k8s.yaml
+k8s-test.yaml
+
+vcivo-k3s.yaml
+vcluster-project-x.yaml
+vcluster-project-y.yaml
+vcluster-project-z.yaml
+

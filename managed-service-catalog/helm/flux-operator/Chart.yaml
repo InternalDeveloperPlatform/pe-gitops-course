@@ -1,0 +1,11 @@
+apiVersion: v2
+name: flux-operator
+version: 1.0.0
+description: This Chart deploys the Flux Operator.
+dependencies:
+  - name: flux-operator
+    version: 0.37.1
+    repository: oci://ghcr.io/controlplaneio-fluxcd/charts
+  - name: template-library
+    repository: file://../template-library
+    version: 0.0.4

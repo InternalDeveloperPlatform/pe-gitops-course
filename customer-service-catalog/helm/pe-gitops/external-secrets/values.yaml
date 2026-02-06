@@ -1,0 +1,12 @@
+clusterSecretStores: {}
+namespace:
+  labels:
+    project-name: "pe-gitops"
+    stage: "prod"
+external-secrets:
+  serviceMonitor:
+    enabled: true
+    additionalLabels:
+      monitoring.instance: "pe-gitops-prod"
+  bitwarden-sdk-server:
+    enabled: false

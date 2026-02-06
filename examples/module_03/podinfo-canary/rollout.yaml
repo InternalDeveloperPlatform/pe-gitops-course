@@ -1,0 +1,70 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: frontend
+  namespace: webapp-canary
+spec:
+  replicas: 4 # Total pods. This allows for a 25% increments (1 out of 4)
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9797"
+      labels:
+        app: frontend
+    spec:
+      serviceAccountName: webapp
+      containers:
+      - name: frontend
+        image: ghcr.io/stefanprodan/podinfo:6.9.3
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 9898
+          protocol: TCP
+        - name: http-metrics
+          containerPort: 9797
+          protocol: TCP
+        - name: grpc
+          containerPort: 9999
+          protocol: TCP
+        command:
+        - ./podinfo
+        - --port=9898
+        - --port-metrics=9797
+        - --level=info
+        - --backend-url=http://backend:9898/echo
+        env:
+        - name: PODINFO_UI_COLOR
+          value: "#4cae4f"
+        livenessProbe:
+          exec:
+            command: ["podcli", "check", "http", "localhost:9898/healthz"]
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+        readinessProbe:
+          exec:
+            command: ["podcli", "check", "http", "localhost:9898/readyz"]
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 32Mi
+  strategy:
+    canary:
+      # No 'trafficRouting' block means we use basic pod-ratio splitting
+      steps:
+      - setWeight: 25   # Argo starts 1 new pod (25% of 4)
+      - pause: {}       # Pauses indefinitely for manual promotion
+      - setWeight: 50   # 2 new pods / 2 old pods
+      - pause: { duration: 1m } # Automatic wait
+      - setWeight: 100  # Full rollout
