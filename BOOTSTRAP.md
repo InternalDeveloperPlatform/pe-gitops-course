@@ -350,7 +350,7 @@ I put your 2 configuration that works out of the box for GitHub and GitLab under
 
 ## Optional: Disable in-cluster services (local setups)
 
-For KinD or minimal clusters, you may want only:
+For Kubernetes in Docker (Kind) or [vCluster in docker (vind)](https://github.com/loft-sh/vind) or minimal clusters, you may want only:
 
 * Argo CD
 * Argo Rollouts

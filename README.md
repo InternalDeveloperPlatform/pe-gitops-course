@@ -35,7 +35,7 @@ This allows you to:
 
 The theoretical background of this course can be found here:
 
-👉 [https://university.platformengineering.org/](https://university.platformengineering.org/)
+👉 [https://university.platformengineering.org/](https://university.platformengineering.org/introduction-to-gitops-for-platform-engineering)
 
 Check the Prerequisites here:
 

@@ -19,7 +19,7 @@ You need access to **one Kubernetes cluster** acting as the **control plane clus
 
 This can be:
 
-* KinD (for learning), but then with a limited feature set
+* Kubernetes in Docker (Kind), but then with a limited feature set, if you want to have more features local you should check out [vCluster in docker (vind)](https://github.com/loft-sh/vind)
 * A managed service such as:
 
   * AWS EKS
