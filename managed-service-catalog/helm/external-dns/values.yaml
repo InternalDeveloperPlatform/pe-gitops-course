@@ -1,17 +1,17 @@
 # creates an ExternalSecret that looks for the specified remote-keys (remote secret names) to inject into webhook pod
-externalSecrets:
-  secretStoreRef:
-    kind: "changeme"
-    name: "changeme"
-  secrets:
-    - target: external-dns-webhook
-      data:
-        - remoteKey: "changeme"
-          remoteKeyProperty: project_id
-          secretKey: "PROJECT_ID"
-        - remoteKey: "changeme"
-          remoteKeyProperty: auth_token
-          secretKey: "AUTH_TOKEN"
+# externalSecrets:
+#   secretStoreRef:
+#     kind: "changeme"
+#     name: "changeme"
+#   secrets:
+#     - target: external-dns-webhook
+#       data:
+#         - remoteKey: "changeme"
+#           remoteKeyProperty: project_id
+#           secretKey: "PROJECT_ID"
+#         - remoteKey: "changeme"
+#           remoteKeyProperty: auth_token
+#           secretKey: "AUTH_TOKEN"
 
 namespace:
   annotations: {}
