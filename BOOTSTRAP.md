@@ -143,6 +143,8 @@ You will need to connect External Secrets Operator to your Secrets Manager / Vau
 
 ### 4.1 Credentials Secret
 
+*__NOTE:__ for private purpose I would highly recommend using the bitwarden secrets manager, because it is free for individuals, has a great UI and also supports all features needed for this setup. You can find the configuration [here](examples/bonus/setup-bitwarden-with-external-secrets.md).*
+
 Example for STACKIT Secrets Manager / Vault.
 
 Secret:
@@ -388,6 +390,9 @@ inClusterSecretLabels:
 ---
 
 ## Final notes
+
+> [!IMPORTANT]
+> Never forget to commit and push your changes to your forked repository, so that Argo CD can sync and manage the platform via GitOps! Otherwise is just local! :)
 
 * This repository reflects **real-world platform constraints**
 * Manual bootstrap steps are **intentional**, because we are not using here the kubara framework binary itself.
