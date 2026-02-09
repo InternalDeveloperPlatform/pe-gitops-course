@@ -21,7 +21,7 @@ argo-cd:
   notifications:
     enabled: false
   global:
-    domain: changeme  # dns name of argocd has to be set here, such as argocd-iep-qa.schwarz
+    domain: changeme
     env:
       - name: "TZ"
         value: "Europe/Berlin"

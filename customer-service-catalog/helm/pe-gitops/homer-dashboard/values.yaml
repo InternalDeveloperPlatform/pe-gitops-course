@@ -86,10 +86,7 @@ dashboardConfig:
       items:
         - name: "STACKIT Secretsmanager"
           logo: "/assets/tools/secretsmanager.png"
-          url: "https://portal.stackit.cloud/projects/replace-me-with-your-url"
-        - name: "Jira"
-          logo: "/assets/tools/jira.png"
-          url: "https://jira.schwarz/"
+          url: "https://replace-with-secretsmanager-url"
 
 gateway:
   enabled: true
